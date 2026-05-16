@@ -1,0 +1,10 @@
+fastapi
+uvicorn
+langgraph
+pydantic
+python-dotenv
+httpx
+structlog
+tenacity
+PyGithub
+streamlit

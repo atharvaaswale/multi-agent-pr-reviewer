@@ -1,0 +1,18 @@
+[project]
+name = "multi-agent-pr-reviewer"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi>=0.136.1",
+    "httpx>=0.28.1",
+    "langgraph>=1.2.0",
+    "pydantic>=2.13.4",
+    "pygithub>=2.9.1",
+    "python-dotenv>=1.2.2",
+    "streamlit>=1.57.0",
+    "structlog>=25.5.0",
+    "tenacity>=9.1.4",
+    "uvicorn>=0.47.0",
+]
