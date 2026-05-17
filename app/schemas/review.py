@@ -49,6 +49,7 @@ class AggregatedReview(BaseModel):
     agent_reviews: list[AgentReview] = Field(default_factory=list)
     warnings: list[str] = Field(default_factory=list)
     approved: bool = False
+    requires_approval: bool = False
 
     @field_validator("findings")
     @classmethod

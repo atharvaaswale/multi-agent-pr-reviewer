@@ -1,10 +1,12 @@
 import json
 import os
+import time
 from typing import Any
 
 import httpx
 import structlog
 from tenacity import (
+    RetryCallState,
     retry,
     retry_if_exception_type,
     stop_after_attempt,
@@ -18,6 +20,16 @@ OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1"
 
 class LLMServiceError(Exception):
     pass
+
+
+def _log_retry_attempt(retry_state: RetryCallState) -> None:
+    exc = retry_state.outcome.exception()
+    logger.warning(
+        "llm_request_retry",
+        attempt_number=retry_state.attempt_number,
+        error_type=type(exc).__name__,
+        error=str(exc),
+    )
 
 
 class LLMService:
@@ -53,6 +65,7 @@ class LLMService:
         stop=stop_after_attempt(3),
         wait=wait_exponential(multiplier=1, min=2, max=10),
         reraise=True,
+        before_sleep=_log_retry_attempt,
     )
     async def chat_completion(
         self,
@@ -69,7 +82,8 @@ class LLMService:
         if response_format:
             payload["response_format"] = response_format
 
-        logger.info("llm_request_start", model=self.model, max_tokens=self.max_tokens)
+        start = time.monotonic()
+        logger.info("llm_request_start", model=self.model, max_tokens=self.max_tokens, temperature=self.temperature)
 
         response = await self._client.post("/chat/completions", json=payload)
         response.raise_for_status()
@@ -79,7 +93,17 @@ class LLMService:
 
         parsed = self._parse_json(content)
 
-        logger.info("llm_request_success", model=self.model, tokens_used=data.get("usage", {}))
+        elapsed = time.monotonic() - start
+        usage = data.get("usage", {})
+
+        logger.info(
+            "llm_request_success",
+            model=self.model,
+            latency=round(elapsed, 2),
+            prompt_tokens=usage.get("prompt_tokens"),
+            completion_tokens=usage.get("completion_tokens"),
+            total_tokens=usage.get("total_tokens"),
+        )
 
         return parsed
 

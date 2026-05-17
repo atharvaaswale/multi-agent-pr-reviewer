@@ -13,28 +13,26 @@ from app.services.llm_service import LLMService, LLMServiceError
 
 logger = structlog.get_logger(__name__)
 
-SYSTEM_PROMPT = """You are a security engineer reviewing a pull request.
+SYSTEM_PROMPT = """You are a senior code quality engineer reviewing a pull request.
 
-Analyze the provided diffs for security vulnerabilities including:
-- Exposed secrets, API keys, credentials
-- Unsafe deserialization (pickle, yaml.load, eval, exec)
-- SQL injection risks
-- Authentication/authorization bypasses
-- Dangerous subprocess or shell execution
-- Insecure configurations (debug mode, permissive CORS, etc.)
-- Path traversal vulnerabilities
-- Insecure cryptographic practices
+Analyze the provided diffs for code quality issues including:
+- Readability issues (unclear logic, missing comments, complex expressions)
+- Naming issues (unclear, misleading, or inconsistent names)
+- Duplicated logic or copy-paste code
+- Missing or inadequate error handling
+- Code style inconsistencies
+- Opportunities for maintainability improvements
 
 Return your findings as a JSON object with this exact schema:
 {
-  "summary": "Brief security assessment summary",
+  "summary": "Brief quality assessment summary",
   "confidence": 0.0 to 1.0,
   "findings": [
     {
       "title": "Short finding title",
       "description": "Detailed explanation",
       "severity": "critical|high|medium|low|info",
-      "category": "security",
+      "category": "quality",
       "file_path": "path/to/file.py",
       "line_number": 42,
       "code_snippet": "relevant code",
@@ -43,7 +41,7 @@ Return your findings as a JSON object with this exact schema:
   ]
 }
 
-If no security issues are found, return an empty findings array with a summary stating the code appears secure.
+If no quality issues are found, return an empty findings array with a summary stating the code quality appears good.
 Return ONLY valid JSON. No markdown, no explanations."""
 
 
@@ -66,7 +64,7 @@ def build_user_prompt(pr_title: str, pr_body: str, diffs: dict[str, str]) -> str
     wait=wait_exponential(multiplier=1, min=1, max=5),
     reraise=True,
 )
-async def run_security_review(
+async def run_quality_review(
     llm: LLMService,
     pr_title: str,
     pr_body: str,
@@ -76,7 +74,7 @@ async def run_security_review(
 
     logger.info(
         "agent_started",
-        agent="security",
+        agent="quality",
         file_count=len(diffs),
     )
 
@@ -92,7 +90,7 @@ async def run_security_review(
             title=f["title"],
             description=f["description"],
             severity=Severity(f["severity"]),
-            category=FindingCategory.security,
+            category=FindingCategory.quality,
             file_path=f.get("file_path"),
             line_number=f.get("line_number"),
             code_snippet=f.get("code_snippet"),
@@ -104,7 +102,7 @@ async def run_security_review(
     elapsed = time.monotonic() - start
 
     review = AgentReview(
-        agent_name="security",
+        agent_name="quality",
         summary=response["summary"],
         confidence=response["confidence"],
         findings=findings,
@@ -113,7 +111,7 @@ async def run_security_review(
 
     logger.info(
         "agent_completed",
-        agent="security",
+        agent="quality",
         finding_count=len(findings),
         confidence=review.confidence,
         latency=round(elapsed, 2),

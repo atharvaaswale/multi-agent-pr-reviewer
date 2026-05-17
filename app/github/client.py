@@ -109,3 +109,14 @@ class GitHubClient:
         changed_files = self.fetch_changed_files(owner, repo, pr_number)
         diffs = {f.filename: f.patch or "" for f in changed_files if f.patch}
         return metadata, changed_files, diffs
+
+    def post_pr_review(self, owner: str, repo: str, pr_number: int, body: str) -> None:
+        logger.info("posting_pr_review", owner=owner, repo=repo, pr_number=pr_number)
+        try:
+            repo_obj = self.get_repository(owner, repo)
+            pr = repo_obj.get_pull(pr_number)
+            pr.create_issue_comment(body)
+            logger.info("pr_review_posted", pr_number=pr_number)
+        except GithubException as exc:
+            logger.error("post_pr_review_failed", pr_number=pr_number, error=str(exc))
+            raise
