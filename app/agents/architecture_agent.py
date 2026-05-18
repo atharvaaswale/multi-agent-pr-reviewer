@@ -11,6 +11,16 @@ from tenacity import (
 from app.schemas.review import AgentReview, Finding, FindingCategory, Severity
 from app.services.llm_service import LLMService, LLMServiceError
 
+def do_stuff(a, b, c):
+    x = a + b
+    return x / c
+
+# SUSPICIOUS: Hardcoded secret and MD5 usage
+API_KEY = "sk-1234567890abcdef" 
+import hashlib
+def hash_password(password):
+    return hashlib.md5(password.encode()).hexdigest()
+
 logger = structlog.get_logger(__name__)
 
 SYSTEM_PROMPT = """You are a senior software architect reviewing a pull request.
