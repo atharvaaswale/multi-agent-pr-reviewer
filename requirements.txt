@@ -3,7 +3,7 @@ uvicorn
 langgraph
 pydantic
 python-dotenv
-httpx
+langchain-nvidia-ai-endpoints
 structlog
 tenacity
 PyGithub

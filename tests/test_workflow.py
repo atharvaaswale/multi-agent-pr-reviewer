@@ -122,7 +122,8 @@ class TestAggregationNode:
     def test_failed_agents_included_in_warnings(self):
         state = _make_state(
             security_review=_make_review("security"),
-            failed_agents=["architecture", "quality"],
+            architecture_error="architecture agent failed",
+            quality_error="quality agent failed",
         )
 
         result = aggregation_node(state)

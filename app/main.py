@@ -1,3 +1,5 @@
+import os
+
 import structlog
 from fastapi import FastAPI
 
@@ -23,7 +25,19 @@ app.include_router(router)
 
 @app.on_event("startup")
 async def startup() -> None:
-    structlog.get_logger(__name__).info("application_started")
+    logger = structlog.get_logger(__name__)
+
+    nvidia_api_key = os.getenv("NVIDIA_API_KEY")
+    if not nvidia_api_key:
+        raise RuntimeError("NVIDIA_API_KEY environment variable is not set")
+
+    model = os.environ.get("NVIDIA_MODEL", "stepfun-ai/step-3.5-flash")
+
+    logger.info(
+        "application_started",
+        provider="nvidia",
+        model=model,
+    )
 
 
 @app.on_event("shutdown")

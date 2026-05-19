@@ -3,8 +3,8 @@ import os
 import time
 from typing import Any
 
-import httpx
 import structlog
+from langchain_nvidia_ai_endpoints import ChatNVIDIA
 from tenacity import (
     RetryCallState,
     retry,
@@ -14,8 +14,6 @@ from tenacity import (
 )
 
 logger = structlog.get_logger(__name__)
-
-OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1"
 
 
 class LLMServiceError(Exception):
@@ -41,27 +39,24 @@ class LLMService:
         max_tokens: int = 4096,
         timeout: float = 120.0,
     ) -> None:
-        self.api_key = api_key or os.environ["OPENROUTER_API_KEY"]
-        self.model = model or os.environ.get("OPENROUTER_MODEL", "anthropic/claude-sonnet-4-20250514")
+        self.api_key = api_key or os.environ["NVIDIA_API_KEY"]
+        self.model = model or os.environ.get("NVIDIA_MODEL", "stepfun-ai/step-3.5-flash")
         self.temperature = temperature
         self.max_tokens = max_tokens
         self.timeout = timeout
-        self._client = httpx.AsyncClient(
-            base_url=OPENROUTER_BASE_URL,
-            headers={
-                "Authorization": f"Bearer {self.api_key}",
-                "Content-Type": "application/json",
-                "HTTP-Referer": os.environ.get("APP_URL", "http://localhost:8000"),
-                "X-Title": "Multi-Agent PR Reviewer",
-            },
-            timeout=httpx.Timeout(self.timeout),
+        self._client = ChatNVIDIA(
+            model=self.model,
+            api_key=self.api_key,
+            temperature=self.temperature,
+            top_p=0.9,
+            max_tokens=self.max_tokens,
         )
 
     async def close(self) -> None:
-        await self._client.aclose()
+        pass
 
     @retry(
-        retry=retry_if_exception_type((httpx.HTTPStatusError, httpx.ConnectError, httpx.TimeoutException)),
+        retry=retry_if_exception_type((Exception,)),
         stop=stop_after_attempt(3),
         wait=wait_exponential(multiplier=1, min=2, max=10),
         reraise=True,
@@ -72,37 +67,32 @@ class LLMService:
         messages: list[dict[str, str]],
         response_format: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
-        payload: dict[str, Any] = {
-            "model": self.model,
-            "messages": messages,
-            "temperature": self.temperature,
-            "max_tokens": self.max_tokens,
-        }
-
-        if response_format:
-            payload["response_format"] = response_format
+        logger.info(
+            "llm_request_start",
+            model=self.model,
+            provider="nvidia",
+            max_tokens=self.max_tokens,
+            temperature=self.temperature,
+        )
 
         start = time.monotonic()
-        logger.info("llm_request_start", model=self.model, max_tokens=self.max_tokens, temperature=self.temperature)
 
-        response = await self._client.post("/chat/completions", json=payload)
-        response.raise_for_status()
+        langchain_messages = [(m["role"], m["content"]) for m in messages]
+        response = self._client.invoke(langchain_messages)
 
-        data = response.json()
-        content = data["choices"][0]["message"]["content"]
+        content = response.content if hasattr(response, "content") else str(response)
 
         parsed = self._parse_json(content)
 
         elapsed = time.monotonic() - start
-        usage = data.get("usage", {})
+        response_size = len(content)
 
         logger.info(
             "llm_request_success",
             model=self.model,
+            provider="nvidia",
             latency=round(elapsed, 2),
-            prompt_tokens=usage.get("prompt_tokens"),
-            completion_tokens=usage.get("completion_tokens"),
-            total_tokens=usage.get("total_tokens"),
+            response_size=response_size,
         )
 
         return parsed

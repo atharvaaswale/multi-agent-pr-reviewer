@@ -32,6 +32,9 @@ class WorkflowState(BaseModel):
     security_review: AgentReview | None = None
     architecture_review: AgentReview | None = None
     quality_review: AgentReview | None = None
+    security_error: str | None = None
+    architecture_error: str | None = None
+    quality_error: str | None = None
     failed_agents: list[str] = Field(default_factory=list)
     aggregated_review: AggregatedReview | None = None
     approval_status: ApprovalStatus = ApprovalStatus.pending

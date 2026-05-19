@@ -9,6 +9,9 @@ from github.PullRequest import PullRequest
 from github.Repository import Repository
 
 logger = structlog.get_logger(__name__)
+from dotenv import load_dotenv
+
+load_dotenv()
 
 PR_URL_PATTERN = re.compile(
     r"https://github\.com/(?P<owner>[^/]+)/(?P<repo>[^/]+)/pull/(?P<number>\d+)"

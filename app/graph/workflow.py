@@ -45,7 +45,7 @@ async def security_review_node(state: WorkflowState) -> dict:
             error=str(exc),
             error_type=type(exc).__name__,
         )
-        return {"failed_agents": state.failed_agents + ["security"]}
+        return {"security_error": str(exc)}
     finally:
         await llm.close()
 
@@ -75,7 +75,7 @@ async def architecture_review_node(state: WorkflowState) -> dict:
             error=str(exc),
             error_type=type(exc).__name__,
         )
-        return {"failed_agents": state.failed_agents + ["architecture"]}
+        return {"architecture_error": str(exc)}
     finally:
         await llm.close()
 
@@ -105,7 +105,7 @@ async def quality_review_node(state: WorkflowState) -> dict:
             error=str(exc),
             error_type=type(exc).__name__,
         )
-        return {"failed_agents": state.failed_agents + ["quality"]}
+        return {"quality_error": str(exc)}
     finally:
         await llm.close()
 
@@ -113,18 +113,25 @@ async def quality_review_node(state: WorkflowState) -> dict:
 def aggregation_node(state: WorkflowState) -> dict:
     agent_reviews: list[AgentReview] = []
     all_findings = []
+    failed_agents = []
 
     if state.security_review:
         agent_reviews.append(state.security_review)
         all_findings.extend(state.security_review.findings)
+    elif state.security_error:
+        failed_agents.append("security")
 
     if state.architecture_review:
         agent_reviews.append(state.architecture_review)
         all_findings.extend(state.architecture_review.findings)
+    elif state.architecture_error:
+        failed_agents.append("architecture")
 
     if state.quality_review:
         agent_reviews.append(state.quality_review)
         all_findings.extend(state.quality_review.findings)
+    elif state.quality_error:
+        failed_agents.append("quality")
 
     completed_agents = [r.agent_name for r in agent_reviews]
 
@@ -152,10 +159,10 @@ def aggregation_node(state: WorkflowState) -> dict:
         summary = _build_summary(agent_reviews)
 
     warnings = []
-    if state.failed_agents:
-        warnings.append(f"Failed agents: {', '.join(state.failed_agents)}")
+    if failed_agents:
+        warnings.append(f"Failed agents: {', '.join(failed_agents)}")
 
-    requires_approval = _requires_human_approval(all_findings, state.failed_agents)
+    requires_approval = _requires_human_approval(all_findings, failed_agents)
 
     aggregated = AggregatedReview(
         pr_url=state.pr_url,
@@ -176,7 +183,7 @@ def aggregation_node(state: WorkflowState) -> dict:
         "workflow_aggregation_completed",
         pr_number=state.pr_number,
         completed_agents=completed_agents,
-        failed_agents=state.failed_agents,
+        failed_agents=failed_agents,
         finding_count=len(all_findings),
         overall_confidence=overall_confidence,
         overall_severity=overall_severity.value,
@@ -189,6 +196,7 @@ def aggregation_node(state: WorkflowState) -> dict:
         "workflow_status": WorkflowStatus.completed,
         "completed_at": datetime.now(timezone.utc),
         "execution_time_seconds": round(elapsed, 2),
+        "failed_agents": failed_agents,
     }
 
 
