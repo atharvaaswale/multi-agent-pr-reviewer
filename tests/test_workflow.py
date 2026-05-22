@@ -31,14 +31,20 @@ def _make_review(agent_name: str, findings: list[Finding] | None = None, confide
     )
 
 
-def _make_finding(severity: Severity = Severity.medium) -> Finding:
+def _make_finding(
+    severity: Severity = Severity.medium,
+    title: str = "Test finding",
+    file_path: str = "test.py",
+    line_number: int = 10,
+    category: FindingCategory = FindingCategory.security,
+) -> Finding:
     return Finding(
-        title="Test finding",
+        title=title,
         description="A test finding",
         severity=severity,
-        category=FindingCategory.security,
-        file_path="test.py",
-        line_number=10,
+        category=category,
+        file_path=file_path,
+        line_number=line_number,
     )
 
 
@@ -93,8 +99,14 @@ class TestBuildSummary:
 class TestAggregationNode:
     def test_all_agents_complete(self):
         state = _make_state(
-            security_review=_make_review("security", [_make_finding(Severity.high)]),
-            architecture_review=_make_review("architecture", [_make_finding(Severity.medium)]),
+            security_review=_make_review(
+                "security",
+                [_make_finding(Severity.high, title="SQL injection", category=FindingCategory.security)],
+            ),
+            architecture_review=_make_review(
+                "architecture",
+                [_make_finding(Severity.medium, title="Tight coupling", category=FindingCategory.architecture)],
+            ),
             quality_review=_make_review("quality"),
         )
 
@@ -159,6 +171,25 @@ class TestAggregationNode:
 
         assert result["execution_time_seconds"] is not None
         assert result["completed_at"] is not None
+
+    def test_aggregation_deduplicates_overlapping_findings(self):
+        # Two agents report the same issue (same file/line/title) at
+        # different severities; aggregation should keep one, highest severity.
+        state = _make_state(
+            security_review=_make_review(
+                "security", [_make_finding(Severity.low, title="Hardcoded secret")]
+            ),
+            architecture_review=_make_review(
+                "architecture", [_make_finding(Severity.critical, title="Hardcoded secret")]
+            ),
+        )
+
+        result = aggregation_node(state)
+
+        review = result["aggregated_review"]
+        assert len(review.findings) == 1
+        assert review.findings[0].severity == Severity.critical
+        assert review.overall_severity == Severity.critical
 
 
 class TestHumanApprovalNode:

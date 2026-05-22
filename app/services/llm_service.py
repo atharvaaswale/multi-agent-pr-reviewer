@@ -36,11 +36,11 @@ class LLMService:
         api_key: str | None = None,
         model: str | None = None,
         temperature: float = 0.0,
-        max_tokens: int = 4096,
-        timeout: float = 120.0,
+        max_tokens: int = 1200,
+        timeout: float = 90.0,
     ) -> None:
         self.api_key = api_key or os.environ["NVIDIA_API_KEY"]
-        self.model = model or os.environ.get("NVIDIA_MODEL", "stepfun-ai/step-3.5-flash")
+        self.model = model or os.environ.get("NVIDIA_MODEL")
         self.temperature = temperature
         self.max_tokens = max_tokens
         self.timeout = timeout

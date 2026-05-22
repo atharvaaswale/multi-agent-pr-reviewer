@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(uv run *)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" http://localhost:8765)",
+      "Bash(pkill -f \"streamlit run\")",
+      "Bash(python -c \"import ast; [ast.parse\\(open\\(f, encoding='utf-8'\\).read\\(\\)\\) for f in ['streamlit_app.py','ui/styles.py','ui/components.py','ui/api.py']]; print\\('syntax OK'\\)\")",
+      "Bash(python -c \"import streamlit; print\\('streamlit', streamlit.__version__\\); print\\('pills:', hasattr\\(streamlit, 'pills'\\)\\)\")",
+      "Bash(timeout 25 streamlit run streamlit_app.py --server.headless true --server.port 8599)",
+      "Bash(echo \"--- exit: $? ---\")"
+    ]
+  }
+}

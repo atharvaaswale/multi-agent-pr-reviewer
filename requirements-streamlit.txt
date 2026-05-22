@@ -1,0 +1,10 @@
+# Frontend-only dependencies for the Streamlit UI.
+# The Streamlit app is fully decoupled from the backend and talks to it
+# over HTTP, so it does not need the backend's LLM / workflow packages.
+#
+#   pip install -r requirements-streamlit.txt
+#   streamlit run streamlit_app.py
+
+streamlit>=1.57.0
+requests>=2.31.0
+python-dotenv>=1.0.0

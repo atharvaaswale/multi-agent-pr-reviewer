@@ -1,0 +1,16 @@
+# Streamlit theme + server config for the Multi-Agent PR Reviewer UI.
+# A dark, enterprise-grade dashboard palette. The custom CSS in ui/styles.py
+# builds on top of these base tokens.
+
+[theme]
+base = "dark"
+primaryColor = "#5b8def"
+backgroundColor = "#0b0d12"
+secondaryBackgroundColor = "#12151c"
+textColor = "#e6e8ee"
+
+[server]
+headless = true
+
+[browser]
+gatherUsageStats = false

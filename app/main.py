@@ -31,7 +31,9 @@ async def startup() -> None:
     if not nvidia_api_key:
         raise RuntimeError("NVIDIA_API_KEY environment variable is not set")
 
-    model = os.environ.get("NVIDIA_MODEL", "stepfun-ai/step-3.5-flash")
+    model = os.environ.get("NVIDIA_MODEL")
+    if not model:
+        raise RuntimeError("NVIDIA_MODEL environment variable is not set")
 
     logger.info(
         "application_started",

@@ -12,6 +12,7 @@ from app.graph.state import ApprovalStatus, WorkflowState, WorkflowStatus
 from app.schemas.review import AgentReview, AggregatedReview, Severity
 from app.services.llm_service import LLMService
 from app.services.review_service import format_review_body
+from app.utils.dedup import deduplicate_findings
 
 logger = structlog.get_logger(__name__)
 
@@ -133,6 +134,10 @@ def aggregation_node(state: WorkflowState) -> dict:
     elif state.quality_error:
         failed_agents.append("quality")
 
+    raw_finding_count = len(all_findings)
+    all_findings = deduplicate_findings(all_findings)
+    duplicates_removed = raw_finding_count - len(all_findings)
+
     completed_agents = [r.agent_name for r in agent_reviews]
 
     if not agent_reviews:
@@ -185,6 +190,7 @@ def aggregation_node(state: WorkflowState) -> dict:
         completed_agents=completed_agents,
         failed_agents=failed_agents,
         finding_count=len(all_findings),
+        duplicates_removed=duplicates_removed,
         overall_confidence=overall_confidence,
         overall_severity=overall_severity.value,
         requires_approval=requires_approval,

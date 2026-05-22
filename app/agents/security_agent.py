@@ -15,7 +15,8 @@ logger = structlog.get_logger(__name__)
 
 SYSTEM_PROMPT = """You are a security engineer reviewing a pull request.
 
-Analyze the provided diffs for security vulnerabilities including:
+Your scope is STRICTLY security vulnerabilities. Analyze the provided diffs
+only for security issues, including:
 - Exposed secrets, API keys, credentials
 - Unsafe deserialization (pickle, yaml.load, eval, exec)
 - SQL injection risks
@@ -24,6 +25,11 @@ Analyze the provided diffs for security vulnerabilities including:
 - Insecure configurations (debug mode, permissive CORS, etc.)
 - Path traversal vulnerabilities
 - Insecure cryptographic practices
+
+Do NOT report naming, comments, formatting, readability, architecture,
+coupling, modularity, or general code-quality issues. Dedicated architecture
+and quality agents own those areas; raising them here only creates duplicate
+findings. If an issue is not a security vulnerability, omit it entirely.
 
 Return your findings as a JSON object with this exact schema:
 {
