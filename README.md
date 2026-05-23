@@ -64,7 +64,7 @@ Architecture and design diagrams are available in [`images/`](images/).-->
               v
        Post Review to PR
 ```-->
-<img src="images/Multi-Agent Pull Request Reviewer.png">
+<img src="images/AI_Code_Review_Workflow_Lifecycle.png">
 
 | Layer | Technology | Responsibility |
 |-------|-----------|----------------|
