@@ -13,7 +13,7 @@ import requests
 AGENT_COUNT = 3
 
 DEFAULT_BACKEND_URL = "http://localhost:8000"
-DEFAULT_MODEL = os.environ.get("NVIDIA_MODEL")
+DEFAULT_MODEL = "meta/llama-3.1-8b-instruct"
 
 # A full review fires several LLM calls, so allow a generous ceiling.
 REVIEW_TIMEOUT_SECONDS = float(os.getenv("REVIEW_TIMEOUT", "600"))
