@@ -27,10 +27,10 @@ Paste a GitHub pull request URL and the system:
    and scores overall severity and confidence.
 4. **Gates** high-risk reviews behind a human-approval step before posting back to GitHub.
 
-The result is delivered both as a **REST API response** and through a **polished Streamlit dashboard**.
+The result is delivered both as a **REST API response** and through **Web (Streamlit) dashboard**.
 
 ---
-
+<!--
 ## 🖼️ Screenshots
 
 > _Add screenshots of the running Streamlit UI here._
@@ -39,13 +39,13 @@ The result is delivered both as a **REST API response** and through a **polished
 |-----------|----------|-----------------|
 | _`docs/screenshots/dashboard.png`_ | _`docs/screenshots/findings.png`_ | _`docs/screenshots/agents.png`_ |
 
-Architecture and design diagrams are available in [`images/`](images/).
+Architecture and design diagrams are available in [`images/`](images/).-->
 
 ---
 
 ## 🏗️ Architecture
 
-```
+<!--```
         GitHub PR URL
               |
               v
@@ -64,7 +64,8 @@ Architecture and design diagrams are available in [`images/`](images/).
               |
               v
        Post Review to PR
-```
+```-->
+<img src="images/Multi-Agent Pull Request Reviewer.png">
 
 | Layer | Technology | Responsibility |
 |-------|-----------|----------------|
@@ -88,7 +89,7 @@ Architecture and design diagrams are available in [`images/`](images/).
 ### 1. Clone & configure
 
 ```bash
-git clone <repo-url>
+git clone multi-agent-pr-reviewer
 cd multi-agent-pr-reviewer
 ```
 
@@ -96,12 +97,8 @@ Create a `.env` file in the project root:
 
 ```env
 NVIDIA_API_KEY=your_nvidia_api_key
-NVIDIA_MODEL=stepfun-ai/step-3.5-flash
+NVIDIA_MODEL=meta/llama-3.1-8b-instruct
 GITHUB_TOKEN=your_github_token
-
-# Optional — used by the Streamlit frontend
-BACKEND_URL=http://localhost:8000
-LLM_PROVIDER=NVIDIA
 ```
 
 ### 2. Install dependencies
