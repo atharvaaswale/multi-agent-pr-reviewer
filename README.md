@@ -1,8 +1,7 @@
 # 🤖 Multi-Agent PR Reviewer
 
-> **AI-powered multi-agent GitHub Pull Request reviewer** — three specialized AI agents
-> review a pull request in parallel, then their findings are aggregated and
-> de-duplicated into a single, clean, structured report.
+> AI-powered multi-agent GitHub Pull Request reviewer that analyzes code changes using specialized review agents for security, architecture, and code quality, then aggregates findings into a structured review dashboard.
+
 
 <p align="left">
   <img alt="Python" src="https://img.shields.io/badge/Python-3.12-3776AB?logo=python&logoColor=white">
