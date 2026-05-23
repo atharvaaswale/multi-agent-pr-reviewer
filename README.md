@@ -64,7 +64,7 @@ Architecture and design diagrams are available in [`images/`](images/).-->
               v
        Post Review to PR
 ```-->
-<img src="images/flowchart.png">
+<img src="images/flowchart.png" width="400">
 
 | Layer | Technology | Responsibility |
 |-------|-----------|----------------|
